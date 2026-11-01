@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calcul mental</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mute:#5d6b82;--acc:#2457d6;--onacc:#fff;--ok:#1a7f52;--ko:#c2392b;--line:#d5dce6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1620;--card:#182230;--ink:#e8eef6;--mute:#93a3ba;--acc:#6c9cff;--onacc:#0f1620;--ok:#4cc38a;--ko:#ff7b6b;--line:#2a3a50;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1620;--card:#182230;--ink:#e8eef6;--mute:#93a3ba;--acc:#6c9cff;--onacc:#0f1620;--ok:#4cc38a;--ko:#ff7b6b;--line:#2a3a50;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;min-height:100vh;display:flex;justify-content:center}
+main{width:100%;max-width:440px;padding:20px 18px 32px}
+h1{font-size:1.9rem;margin:8px 0 6px;letter-spacing:-.02em}
+p{color:var(--mute);line-height:1.5;margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 18px}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:15px 18px;width:100%;background:var(--acc);color:var(--onacc);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:baseline;font-variant-numeric:tabular-nums;color:var(--mute);font-weight:600}
+#time{font-size:1.5rem;color:var(--ink)}
+.bar{height:6px;background:var(--line);border-radius:3px;margin:12px 0 26px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .25s}
+.lvl{color:var(--mute);font-size:.95rem;margin-bottom:8px}
+#q{font-size:3rem;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:4px 0 22px;word-break:break-word}
+input{font:inherit;font-size:1.8rem;font-weight:700;width:100%;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;text-align:center}
+.big{font-size:3.2rem;font-weight:800;margin:0}
+.stats{color:var(--mute);margin:4px 0 18px;font-variant-numeric:tabular-nums}
+.rec{max-height:46vh;overflow-y:auto;margin:0 0 18px;padding:0;list-style:none}
+.rec li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.rec .ok{color:var(--ok)}.rec .ko{color:var(--ko)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<section id="home">
+<h1>Calcul mental</h1>
+<p>10 calculs, chronométrés. La difficulté monte tous les deux ou trois calculs. Réponds vite et juste.</p>
+<div class="card">
+<p id="best" style="margin-bottom:14px">Pas encore de record.</p>
+<button id="go">Commencer</button>
+</div>
+</section>
+
+<section id="play" class="hide">
+<div class="top"><span id="num">1 / 10</span><span id="time">0:00.0</span></div>
+<div class="bar"><i id="prog"></i></div>
+<div class="card">
+<div class="lvl" id="lvl">Niveau 1</div>
+<div id="q">…</div>
+<input id="ans" type="text" inputmode="numeric" autocomplete="off" aria-label="Ta réponse" placeholder="?">
+<button id="ok">Valider</button>
+</div>
+</section>
+
+<section id="end" class="hide">
+<div class="card">
+<p class="big" id="score"></p>
+<p class="stats" id="stats"></p>
+<ul class="rec" id="rec"></ul>
+<button id="again">Rejouer</button>
+</div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[r(0,a.length-1)];
+const T=[
+ [()=>{const a=r(10,40),b=r(10,40);return[a+" + "+b,a+b]},
+  ()=>{const a=r(30,90),b=r(10,a-5);return[a+" − "+b,a-b]}],
+ [()=>{const a=r(60,300),b=r(40,200);return[a+" + "+b,a+b]},
+  ()=>{const a=r(150,500),b=r(40,a-20);return[a+" − "+b,a-b]},
+  ()=>{const a=r(6,9),b=r(6,12);return[a+" × "+b,a*b]}],
+ [()=>{const a=r(11,19),b=r(3,9);return[a+" × "+b,a*b]},
+  ()=>{const b=r(6,12),q=r(11,25);return[(b*q)+" ÷ "+b,q]},
+  ()=>{const a=r(20,60),b=r(20,60),c=r(10,40);return[a+" + "+b+" + "+c,a+b+c]}],
+ [()=>{const p=pick([5,10,15,20,25,50]),b=r(2,20)*20;return[p+" % de "+b,p*b/100]},
+  ()=>{const a=r(12,25),b=r(11,19);return[a+" × "+b,a*b]},
+  ()=>{const a=r(5,15),b=r(5,15),c=r(6,12);return["("+a+" + "+b+") × "+c,(a+b)*c]}]
+];
+const tier=i=>i<3?0:i<6?1:i<8?2:3;
+let qs,idx,res,t0,tq,timer;
+const fmt=ms=>{const s=ms/1000,m=Math.floor(s/60);return m+":"+(s%60).toFixed(1).padStart(4,"0")};
+function show(id){["home","play","end"].forEach(x=>$(x).classList.toggle("hide",x!==id))}
+function best(){try{const b=JSON.parse(localStorage.getItem("cm_best")||"null");
+ $("best").textContent=b?"Record : "+b.score+"/10 en "+fmt(b.time):"Pas encore de record."}catch(e){}}
+function saveBest(score,time){try{const b=JSON.parse(localStorage.getItem("cm_best")||"null");
+ if(!b||score>b.score||(score===b.score&&time<b.time))localStorage.setItem("cm_best",JSON.stringify({score,time}))}catch(e){}}
+function ask(){
+ const i=idx,[t,a]=pick(T[tier(i)])();
+ qs[i]={t,a};
+ $("num").textContent=(i+1)+" / 10";
+ $("lvl").textContent="Niveau "+(tier(i)+1);
+ $("q").textContent=t;
+ $("prog").style.width=(i*10)+"%";
+ $("ans").value="";$("ans").focus();
+ tq=performance.now();
+}
+function start(){
+ qs=[];res=[];idx=0;show("play");
+ t0=performance.now();
+ clearInterval(timer);
+ timer=setInterval(()=>{$("time").textContent=fmt(performance.now()-t0)},100);
+ ask();
+}
+function submit(){
+ const v=$("ans").value.trim();
+ if(v===""){$("ans").focus();return}
+ const given=parseInt(v,10),now=performance.now();
+ res.push({t:qs[idx].t,a:qs[idx].a,g:given,ok:given===qs[idx].a,ms:now-tq});
+ idx++;
+ if(idx<10)ask();else finish();
+}
+function finish(){
+ clearInterval(timer);
+ const total=performance.now()-t0,score=res.filter(x=>x.ok).length;
+ saveBest(score,total);best();
+ $("prog").style.width="100%";
+ $("score").textContent=score+" / 10";
+ $("stats").textContent="Temps total : "+fmt(total)+" · moyenne "+(total/10000).toFixed(1)+" s par calcul";
+ $("rec").innerHTML="";
+ res.forEach(x=>{
+  const li=document.createElement("li");li.className=x.ok?"ok":"ko";
+  const l=document.createElement("span"),rt=document.createElement("span");
+  l.textContent=x.t+" = "+(x.ok?x.a:x.g+" (réponse : "+x.a+")");
+  rt.textContent=(x.ms/1000).toFixed(1)+" s";
+  li.append(l,rt);$("rec").appendChild(li);
+ });
+ show("end");
+}
+$("go").onclick=start;
+$("again").onclick=start;
+$("ok").onclick=submit;
+$("ans").addEventListener("keydown",e=>{if(e.key==="Enter")submit()});
+best();
+</script>
+</body>
+</html>
